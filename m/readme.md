@@ -21,7 +21,7 @@ Implement the *mepclassifier.ClassifierContract* contract:
 classdef CustomClassifier < mepclassifier.ClassifierContract
 % ...
 end
-See an example in *m/DefaultMEPClassifier.m*.
+See an example in *m/DefaultClassifier.m*.
 
 Insert an entry in *m/mep_classifier.json* for the implementation with a unique driver name:
 ```json
