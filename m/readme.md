@@ -1,9 +1,9 @@
 # Introduction
-MATLAB deployment of the meP classifier.
+MATLAB deployment of the MEP classifier.
 ## Installation
-Clone the directory and *m/* to matlab path.
+Clone the directory and add *m/* to matlab path.
 
-Run the following in matlab prompt to ensure the test passes.
+Run the following in matlab prompt and ensure the test passes.
 ```MATLAB
 mepclassifier.ClassifierManager().classifier().sanityTest()
 ```

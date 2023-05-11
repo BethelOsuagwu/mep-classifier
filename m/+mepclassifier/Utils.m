@@ -1,5 +1,5 @@
 classdef Utils
-    %UTILS holds utilities.
+    %Utilities.
     
     methods
         function obj = Utils()

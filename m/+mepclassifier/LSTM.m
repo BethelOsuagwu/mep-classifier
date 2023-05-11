@@ -1,7 +1,7 @@
 classdef LSTM
     % LSTM
     
-    properties
+    properties(SetAccess=protected)
         kernels
         recurrentKernels
         biases
@@ -11,15 +11,52 @@ classdef LSTM
     end
     
     methods
-        function this = LSTM(kernels,recurrentKernels,biases)
+        function this = LSTM(activation,recurrentActivation,returnSequences)
             %LSTM Construct an instance of this class
             %   
+            %   [INPUTS]
+            %   activation: Activation function to use. Default is tanh.
+            %   recurrentActivation: Activation function to use for the recurrent step. Default is sigmoid.
+            %   returnSequences: When true, the output of the LSTM is a sequence. Default is false.
+            %
+            %   [OUTPUTS]
+            %   this: The instance of the LSTM class.
+
+            if nargin>0
+                this.activation=activation;
+            end
+            if nargin>1
+                this.recurrentActivation=recurrentActivation;
+            end
+            if nargin>2
+                this.returnSequences=returnSequences;
+            end
+
+        end
+        function this=setWeights(this,kernels,recurrentKernels,biases)
+        % Set the weights of the LSTM layer.
+        %
+        % [INPUTS]
+        % kernels: The kernel weights.
+        % recurrentKernels: The recurrent kernel weights.
+        % biases: The biases.
+        %
+        % [OUTPUTS]
+        % this: The instance of the LSTM class.
+
             this.kernels=kernels;
             this.recurrentKernels=recurrentKernels;
             this.biases=biases;
         end
-        
         function output = call(this,inputData)
+        % LSTM forward pass.
+        %
+        % [INPUTS]
+        % inputData: The input data of shape [batch x time x features]
+        %
+        % [OUTPUTS]
+        % output: The output data of shape [batch x units] or [batch x steps x units] if returnSequences is true.
+
             % LSTM forward pass.
             dataset=inputData;
             bias=this.biases;
@@ -60,20 +97,20 @@ classdef LSTM
     methods(Access=protected)
         function [h, state] = rnnCell(this,inputs, prev_state, prev_carry, kernel, recurrent_kernel, bias)
         % Perform matrix multiplication for a single RNN cell.
-
-            % Inputs:
-            % - inputs: 2D tensor with shape (batch_size, input_dim)
-            % - prev_state: 2D tensor with shape (batch_size, units). 
-            %               The previous output of the RNN.
-            % - prev_carry: 2D tensor with shape (batch_size, units)
-            % - kernel: 2D tensor with shape (input_dim, units)
-            % - recurrent_kernel: 2D tensor with shape (units, units)
-            % - bias: 1D tensor with shape (units,)
-
-            % Outputs:
-            % - h: Output - 2D tensor with shape (batch_size, units)
-            % - state: List containing 2 2D tensors each with shape (batch_size, units). 
-            %          The first tensor is the output and the second tensor is the carry.
+        %
+        % Inputs:
+        % - inputs: 2D tensor with shape (batch_size, input_dim)
+        % - prev_state: 2D tensor with shape (batch_size, units). 
+        %               The previous output of the RNN.
+        % - prev_carry: 2D tensor with shape (batch_size, units)
+        % - kernel: 2D tensor with shape (input_dim, units)
+        % - recurrent_kernel: 2D tensor with shape (units, units)
+        % - bias: 1D tensor with shape (units,)
+        %
+        % Outputs:
+        % - h: Output - 2D tensor with shape (batch_size, units)
+        % - state: List containing 2 2D tensors each with shape (batch_size, units). 
+        %          The first tensor is the output and the second tensor is the carry.
 
 
             z = inputs*kernel;
@@ -90,13 +127,13 @@ classdef LSTM
 
         function [c, o] = computeOutputAndCarry(this,z, prev_carry)
             % Compute the output and carry of a single RNN cell.
-
+            %
             % Inputs:
             % - z: List/tuple containing 4 2D tensors each with shape (batch_size, units).
             %      The 4 tensors are the result of splitting the output of the matrix
             %      multiplication of the inputs and the weights.
             % - prev_carry: 2D tensor with shape (batch_size, units)
-
+            %
             % Outputs:
             % - c: 2D tensor with shape (batch_size, units). 
             %      The carry of the RNN cell.

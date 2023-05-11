@@ -1,25 +1,50 @@
 classdef Conv1D
     % Conv 1D
     
-    properties
+    properties(SetAccess=protected)
         kernels
         biases
         activation=@mepclassifier.Utils.relu;
     end
     
     methods
-        function this = Conv1D(kernels,biases,activation)
+        function this = Conv1D(activation)
             %CONV1D Construct an instance of this class
-            %   
-            this.kernels=kernels;
-            this.biases=biases;
-            if nargin >=3
+            %  [INPUTS]
+            %   activation: Activation function to use. Default is relu. Set to [] to disable activation.
+            %
+            %   [OUTPUTS]
+            %   this: The instance of the Conv1D class.
+
+
+            if nargin >=1
                 this.activation=activation;
             end
         end
         
+        function this=setWeights(this,kernels,biases)
+            % Set the weights of the Conv1D layer.
+            %
+            % [INPUTS]
+            % kernels: The kernel weights.
+            % biases: The biases.
+            %
+            % [OUTPUTS]
+            % this: The instance of the Conv1D class.
+
+            this.kernels=kernels;
+            this.biases=biases;
+        end
+        
         function output = call(this,inputs)
             % Conv1D forward pass.
+            % 
+            % [INPUTS]
+            % inputs: The input data of shape [batch x steps x features]
+            %
+            % [OUTPUTS]
+            % output: The output data of shape [batch x steps x features]
+
             dataset=inputs;
             kernel_size=size(this.kernels);
             num_filters=kernel_size(end);

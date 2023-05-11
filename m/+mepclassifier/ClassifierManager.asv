@@ -42,8 +42,9 @@ classdef ClassifierManager
         end
         function cs= all()
             % Get all classifiers
-            file_path=fileparts(fileparts(mfilename('fullpath')));
-            file_name = fullfile(file_path,'classifiers.json');
+            file_path=filepath(filepath(mfilename('fullpath')));
+            disp(path)
+            file_name = fullfile(file_path,'classifiers.json';
             fid = fopen(file_name); 
             raw = fread(fid,inf);
             str = char(raw'); 

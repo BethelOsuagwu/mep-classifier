@@ -39,13 +39,13 @@ classdef DefaultClassifier < mepclassifier.ClassifierContract
             dataset=(dataset-this.mean)./sqrt(this.variance);
             
             %% Conv1D layer
-            dataset=mepclassifier.Conv1D(this.weights{1},this.weights{2}).call(dataset);
+            dataset=mepclassifier.Conv1D().setWeights(this.weights{1},this.weights{2}).call(dataset);
             
             %% LSTM layer
-            output=mepclassifier.LSTM(this.weights{3},this.weights{4},this.weights{5}).call(dataset);
+            output=mepclassifier.LSTM().setWeights(this.weights{3},this.weights{4},this.weights{5}).call(dataset);
             
             %% Dense layer
-            output=mepclassifier.Dense(this.weights{6},this.weights{7}).call(output);
+            output=mepclassifier.Dense().setWeights(this.weights{6},this.weights{7}).call(output);
         end
     end
     
