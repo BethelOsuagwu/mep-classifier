@@ -36,6 +36,7 @@ Use the custom classifier:
 ```MATLAB
 customClassifier=mepclassifier.ClassifierManager().classifier('custom'); 
 data=...;
-[start, stop, preds]=customClassifier.classify(data);
+Fs=...;
+[start, stop, preds]=customClassifier.classify(data,Fs);
 
 ```
