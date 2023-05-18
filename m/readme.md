@@ -12,7 +12,8 @@ mepclassifier.ClassifierManager().classifier().sanityTest()
 % Use the default classifier to classify MEP data.
 classifier=mepclassifier.ClassifierManager().classifier('default'); 
 data=...;
-[start, stop, preds]=classifier.classify(data);
+Fs=...;
+[start, stop, preds]=classifier.classify(data,Fs);
 ```
 
 ## Adding custom classifiers
@@ -24,7 +25,7 @@ end
 ```
 See an example in *m/DefaultClassifier.m*.
 
-Insert an entry in *m/mep_classifier.json* for the implementation with a unique driver name:
+Insert an entry in *m/classifiers.json* for the implementation with a unique driver name:
 ```json
 {
   "driver":"custom",

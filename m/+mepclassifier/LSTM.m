@@ -7,7 +7,7 @@ classdef LSTM
         biases
         activation=@tanh;
         recurrentActivation=@mepclassifier.Utils.sigmoid;
-        returnSequences=false; % When true only the last time step is returned.
+        returnSequences=false; % When false only the last time step is returned.
     end
     
     methods
