@@ -8,11 +8,11 @@
 The classes are more balanced. As this dataset contains significant stimulation artefact class, this data could perhaps be transferred to training.
 
 ## Todo
-### Labelling
+### [DONE]Better precision labelling
 **In EPR recorder**
 1. Create a btn that opens a window
 2. The window allowes you to scroll through the trials
-3. for each trial, you can use 3 checkboxes to state which of the following components are present: stim artifact/EP/background.
+3. for each trial, you can use 4 checkboxes to state which of the following components are present: stim-artifact|background-pre|EP|background-post.
 4. Based on the number of components present, N resizeable color coded rectangles appear  over the signal,
 5. resize the rectangles as appriopriate. When a rectangle is resized, the size of adjacent rectagles are up adjusted to ensure that there is no space bween the neighbours.
 6. The rectangles are saved in EPR.epochs.training...

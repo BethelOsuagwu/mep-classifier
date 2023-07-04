@@ -173,8 +173,11 @@ def trainValTestSplit(data: np.ndarray,targets: np.ndarray,train_percent:float=8
     val_targets=targets[train_len:train_len+val_len];
 
     # Test data
-    test_data=data[train_len+val_len:];
-    test_targets=targets[train_len+val_len:];
+    test_data=[];
+    test_targets=[];
+    if train_len+val_len<len(data):
+        test_data=data[train_len+val_len:];
+        test_targets=targets[train_len+val_len:];
 
     return (train_data,train_targets,val_data,val_targets,test_data,test_targets);
 
