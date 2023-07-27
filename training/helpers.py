@@ -205,9 +205,6 @@ def normalisationParameters(train_data: np.ndarray,train_targets: np.ndarray)->T
     return (bg_mean,bg_std);
 
 
-
-
-
 def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:float=None)->keras.Sequential:
     """
     Get the default model.
@@ -240,18 +237,35 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
         model.add(layers.Normalization(axis=-1,mean=normalisation_mean,variance=normalisation_std**2));
     
     ## Spatial
-    model.add(layers.Conv1D(32, 8,activation='relu',padding='same'));
-    model.add(layers.MaxPooling1D(pool_size=2));
-    model.add(layers.Conv1D(64, 8,activation='relu',padding='same'));
-    model.add(layers.MaxPooling1D(pool_size=2));
-    model.add(layers.Conv1D(128, 8,activation='relu',padding='same'));
-    model.add(layers.MaxPooling1D(pool_size=2));
-    model.add(layers.Conv1D(256, 8,activation='relu',padding='same'));
+    model.add(layers.Conv1D(4, 3,activation='relu',padding='valid'));
+    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    model.add(layers.Conv1D(8, 3,activation='relu',padding='valid'));
+    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    model.add(layers.Conv1D(16, 3,activation='relu',padding='valid'));
+    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    model.add(layers.Conv1D(32, 3,activation='relu',padding='valid'));
     model.add(layers.UpSampling1D(size=2));
-    model.add(layers.Conv1DTranspose(128, 2,activation='relu'));
+    model.add(layers.Conv1DTranspose(16, 3,activation='relu'));
     model.add(layers.UpSampling1D(size=2));
-    model.add(layers.Conv1DTranspose(64, 8,activation='relu'))
-    model.add(layers.Conv1DTranspose(1, 12,activation='relu'))
+    model.add(layers.Conv1DTranspose(8, 3,activation='relu'))
+    model.add(layers.UpSampling1D(size=2));
+    model.add(layers.Conv1DTranspose(4, 3,activation='relu'))
+    model.add(layers.UpSampling1D(size=2));
+    model.add(layers.Conv1DTranspose(2, 3,activation='relu'))
+    
+    # model.add(layers.Conv1D(32, 8,activation='relu',padding='same'));
+    # model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    # model.add(layers.Conv1D(64, 8,activation='relu',padding='same'));
+    # model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    # model.add(layers.Conv1D(128, 8,activation='relu',padding='same'));
+    # model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    # model.add(layers.Conv1D(256, 8,activation='relu',padding='same'));
+    # model.add(layers.UpSampling1D(size=2));
+    # model.add(layers.Conv1DTranspose(128, 2,activation='relu'));
+    # model.add(layers.UpSampling1D(size=2));
+    # model.add(layers.Conv1DTranspose(64, 8,activation='relu'))
+    # model.add(layers.Conv1DTranspose(32, 12,activation='relu'))
+
 
     ## Temporal
     model.add(layers.LSTM(16));
@@ -261,6 +275,83 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
     
     return model;
+
+def getModel__delete(num_classes:int=3,normalisation_mean:float=None,normalisation_std:float=None)->keras.Sequential:
+    """
+    Get the default model.
+
+    Parameters
+    ----------
+    num_classes : int, optional
+        Number of classes. The default is 3.
+    normalisation_mean : float, optional
+        Mean of normalisation. The default is None.
+    normalisation_std : float, optional
+        Standard deviation of normalisation. The default is None.
+
+    Returns
+    -------
+    keras.Sequential
+        Model.
+
+    """
+
+
+    # Model parameters
+    output_num = num_classes
+
+    # Model
+    model = keras.Sequential()
+
+    ## Normalisation layer
+    if normalisation_mean is not None and normalisation_std is not None:
+        model.add(layers.Normalization(axis=-1,mean=normalisation_mean,variance=normalisation_std**2));
+
+   
+    ## Spatial
+    model.add(layers.Conv1D(4, 3,activation='relu',padding='valid'));
+    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    model.add(layers.Conv1D(8, 3,activation='relu',padding='valid'));
+    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    model.add(layers.Conv1D(16, 3,activation='relu',padding='valid'));
+
+
+    ## Temporal
+    model.add(layers.LSTM(16));
+
+    ## Output
+    model.add(layers.Dense(output_num,activation = "sigmoid"))
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
+    
+    return model;
+
+
+def export_model(model:keras.Model)->List[dict]:
+    """
+    Exports the layer weights and config a list of dictionary in the order they 
+    are contained in the model.
+
+    Parameters
+    ----------
+    model : keras.Model
+        Keras model.
+
+    Returns
+    -------
+    List[dict]
+        Exported model layers where each item is a dictionary with keys {weights,config}.
+
+    """
+    layers=[];
+    
+    
+
+    for layer in model.layers:
+        w=layer.get_weights();
+        c=dict_replace_none_with_empty_array(layer.get_config());
+        layers.append({'weights':w,'config':c,'type':type(layer).__name__});
+
+    return layers;
 
 # Training
 def sequence_generator(data:np.ndarray,targets:np.ndarray,L:int,D:int)->Tuple[np.ndarray,np.ndarray]:
@@ -382,3 +473,34 @@ def test_sequence_generator_non_causal()->None:
     assert np.all(expected_targets==actual_targets),f"Expected targets is:\n {expected_targets} \n but got\n {actual_targets}";
     print('Pass')
     
+def dict_replace_none_with_empty_array(data):
+    """
+    Recursively iterates through a Python dictionary and replaces any entry with a value of `None` with an empty array.
+
+    Parameters
+    ----------
+    data : dict or list or any valid Python data type
+        The input data to be processed. It can be a dictionary, a list, or any valid Python data type.
+
+    Returns
+    -------
+    updated_data : dict or list or any valid Python data type
+        The processed data with all `None` values replaced by empty arrays.
+    """
+
+    if isinstance(data, dict):
+        # Create a copy of the dictionary to avoid modifying the original one
+        updated_data = data.copy()
+        for key, value in data.items():
+            # Recursively call the function on nested dictionaries
+            updated_data[key] = dict_replace_none_with_empty_array(value)
+        return updated_data
+    elif isinstance(data, list):
+        # Recursively call the function on list elements
+        return [dict_replace_none_with_empty_array(item) for item in data]
+    elif data is None:
+        # Replace None with an empty array
+        return []
+    else:
+        # Return other data types as is
+        return data

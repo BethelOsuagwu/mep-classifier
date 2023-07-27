@@ -7,7 +7,8 @@ classdef (Abstract) ClassifierContract < handle
 
     properties(Access=protected)
         name='untitled'; % string: Set the name of the classifier
-        weights % Model weight
+        layers % cell: Model layers information. Each entry is a structure with keys (weights:cell,config:struct,type:string). @see predictionLoop() for example usage.
+        
         sampleFreq % double: Sample frequency(Hz) of model. This is the sample frequency of the training data. 
         sanityTestInputs % Model sanity test input
         sanityTestOutputs % Model sanity inputs output
@@ -23,6 +24,52 @@ classdef (Abstract) ClassifierContract < handle
             %   inference data. 
             % [OUTPUTS]
             % preds array: Predictions. Shape=[batches,output_dim]
+    end
+    
+    methods(Access=protected)
+        function dataset = predictionLoop(this,dataset)  
+            % A helper to perform prediction.
+            %
+            % dataset: Dataset of shape compactible to the first layer.
+            % [OUTPUTS}
+            % The prediction.
+            
+            
+            
+            %%
+            for layer_cell=this.layers
+                layer=layer_cell{1};
+                switch(layer.type)
+                    case 'Normalization'
+                        dataset=(dataset-layer.config.mean)./sqrt(layer.config.variance);
+                    case 'Conv1D'
+                        padding=layer.config.padding;
+                        strides=layer.config.strides;
+                        activation=layer.config.activation;
+                        dataset=mepclassifier.Conv1D(padding,strides,activation).setWeights(layer.weights{1},layer.weights{2}).call(dataset);
+                    case 'Conv1DTranspose'
+                        padding=layer.config.padding;
+                        strides=layer.config.strides;
+                        activation=layer.config.activation;
+                        dataset=mepclassifier.Conv1DTranspose(padding,strides,activation).setWeights(layer.weights{1},layer.weights{2}).call(dataset);
+                    case 'LSTM'
+                        dataset=mepclassifier.LSTM().setWeights(layer.weights{1},layer.weights{2},layer.weights{3}).call(dataset);
+                    case 'Dense'
+                        dataset=mepclassifier.Dense().setWeights(layer.weights{1},layer.weights{2}).call(dataset);
+                    case 'MaxPooling1D'
+                        pool_size=layer.config.pool_size;
+                        padding=layer.config.padding;
+                        strides=layer.config.strides;
+                        dataset=mepclassifier.MaxPooling1D(pool_size,padding,strides).call(dataset);
+                    case 'UpSampling1D'
+                        dataset=mepclassifier.Upsampling1D(layer.config.size).call(dataset);
+                    otherwise
+                        error('Unknown layer:%s',layer.type);
+                end
+            end
+            
+
+        end
     end
     
     methods
@@ -46,7 +93,10 @@ classdef (Abstract) ClassifierContract < handle
             result=false;
             expected =this.sanityTestOutputs;
             actual=this.predict(this.sanityTestInputs,this.sampleFreq);
-            if all(abs(actual-expected)<tol)
+            length_match=(length(size(actual))==length(size(expected)));
+            size_match=all(size(actual)==size(expected));
+            value_match=all(abs(actual(:)-expected(:))<tol);
+            if length_match && size_match && value_match
                 result=true;
             end
             
@@ -61,6 +111,7 @@ classdef (Abstract) ClassifierContract < handle
             end
             
         end
+        
         
         function [start,stop,preds]=classify(this,data,dataSampleFreq)
             % Classify every point in the data.

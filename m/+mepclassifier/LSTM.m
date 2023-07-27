@@ -112,8 +112,8 @@ classdef LSTM
         % - state: List containing 2 2D tensors each with shape (batch_size, units). 
         %          The first tensor is the output and the second tensor is the carry.
 
-
-            z = inputs*kernel;
+            
+            z = inputs*kernel;% TODO when input_dim=1 we get error here b/c inputs we receive has shape (1,batch_size) instead of (batch_size,1).
 
             z = z + prev_state * recurrent_kernel;
             z = z + bias;

@@ -2,7 +2,7 @@ classdef DefaultClassifier < mepclassifier.ClassifierContract
     %Implements a classifier
     
     properties(Access=protected)
-
+        weights % Model weight
         mean % Model mean
         variance % Model variance
         inputShape=[50,1];
@@ -39,7 +39,7 @@ classdef DefaultClassifier < mepclassifier.ClassifierContract
             dataset=(dataset-this.mean)./sqrt(this.variance);
             
             %% Conv1D layer
-            dataset=mepclassifier.Conv1D().setWeights(this.weights{1},this.weights{2}).call(dataset);
+            dataset=mepclassifier.Conv1D('same',1,'relu').setWeights(this.weights{1},this.weights{2}).call(dataset);
             
             %% LSTM layer
             output=mepclassifier.LSTM().setWeights(this.weights{3},this.weights{4},this.weights{5}).call(dataset);

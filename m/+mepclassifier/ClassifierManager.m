@@ -20,6 +20,9 @@ classdef ClassifierManager
             end
             
             c=this.find(driver);
+            %if c.path
+            %    addpath(c.path);
+            %end
             c=feval(c.classname);
             if ~isa(c,'mepclassifier.ClassifierContract')
                 c=[];

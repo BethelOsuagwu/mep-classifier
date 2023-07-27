@@ -30,7 +30,7 @@ Insert an entry in *m/classifiers.json* for the implementation with a unique dri
 {
   "driver":"custom",
   "name":"Custom classifier",
-  "classname":"CustomClassifier"
+  "classname":"/CustomClassifier"
 }
 ```
 Use the custom classifier:
