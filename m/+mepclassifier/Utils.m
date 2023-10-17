@@ -71,7 +71,8 @@ classdef Utils
                 direction='both';
             end
             
-            % Early return
+            % Early return: note we wil still get the correct result
+            % without this early return.
             if pad_size==0
                 padded=x;
                 return

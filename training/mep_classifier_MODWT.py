@@ -13,6 +13,7 @@ from helpers import (
     trainValTestSplit,
     normalisationParameters,
     getModel,
+    getModelSmall,
     export_model
 )
 
@@ -24,12 +25,22 @@ from helpers import (
 sample_freq = 4000;#Hz
 
 fnames=[];
-fnames.append(os.path.join('./data/H1_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H3_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H4_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv'));
+fnames.append(os.path.join('./data/EPR_MODWT_train.csv'));
+
 # Load data
-data,targets=loadResponseData(fnames);
+data,targets=loadResponseData(fnames,num_features=6);
+
+# Load validation data
+val_fnames=[];
+val_fnames.append(os.path.join('./data/EPR_MODWT_test.csv'));
+val_data,val_targets=loadResponseData(val_fnames,num_features=6);
+
+# Choose features
+features_cols=[0,3,4,5];
+data=data[:,features_cols];
+
+val_data=val_data[:,features_cols];
+
 
 print('\n\n% of classes in training data')
 countClasses(targets);
@@ -37,6 +48,9 @@ countClasses(targets);
 print('\n\n% of classes in training data after discarding some')
 data,targets=discardExcessBackgroundData(data,targets,discard_percent=0);
 
+
+print('\n\n% of classes in validation data')
+countClasses(val_targets);
 
 # Model parameters
 sequence_time_len=10;# The length of a sequence in milliseconds
@@ -48,20 +62,20 @@ num_classes=targets.shape[1];
 using_causal_data=False;
 if using_causal_data:
     data_seq,targets_seq = sequence_generator(data,targets,sequence_len,0) # input and target for training
+    val_data,val_targets=sequence_generator(val_data,val_targets,sequence_len,0);
 else:
     data_seq,targets_seq = sequence_generator_non_causal(data,targets,sequence_len) # input and target for training
+    val_data,val_targets=sequence_generator_non_causal(val_data,val_targets,sequence_len);
+    
 # Split data into training, evaluation and test sets
 (train_data,
  train_targets,
- val_data,
- val_targets,
- _,
- _)=trainValTestSplit(data_seq,targets_seq,train_percent=80,val_percent=20);
+ _,_,_,_)=trainValTestSplit(data_seq,targets_seq,train_percent=100,val_percent=0);
 
 
 # Build model
 bg_mean,bg_std=normalisationParameters(train_data[:,0,:],train_targets);
-model=getModel(num_classes,bg_mean,bg_std);
+model=getModelSmall(num_classes,bg_mean,bg_std);
 
 # Train model
 model_base_filename='uclassifier'
@@ -75,7 +89,7 @@ history = model.fit(
     train_data,
     train_targets,
     batch_size=2048,
-    epochs=4*50,
+    epochs=2*50,
     validation_data=(val_data,val_targets),
     callbacks=callbacks)
 

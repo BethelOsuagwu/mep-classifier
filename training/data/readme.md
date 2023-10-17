@@ -3,9 +3,16 @@
 1. **training-25-05-2023.csv** - This is a cleaner version of `training_data_with_artefact_class_all_response_win.csv`. It has no isolated background classes between stimulation artefact and response classes. The classes apart from the stimulation artefact class, are more balanced. Also the class labels are improved. 
 2. **training_data_with_artefact_class_all_response_win.csv** - This is similar to `training-25-05-2023.csv`. In fact they are from the same dataset. But this one has isolated background classes between stimulation artefact and response classes. It also contain a few bad quality responses. It has significant class imbalance.
 
+3. **H3_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv**
+The quality of the labels in this data should be investigated. The label may need to be edited.
+
+3. **H1_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv**
+TODO: re-export this dataset from erecorder to confirm it is correct.
+
 ## Testing data
 2. **testing-18-05-2023.csv** - testing data
 The classes are more balanced. As this dataset contains significant stimulation artefact class, this data could perhaps be transferred to training.
+
 
 ## Todo
 ### [DONE]Better precision labelling

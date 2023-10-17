@@ -24,10 +24,14 @@ from helpers import (
 sample_freq = 4000;#Hz
 
 fnames=[];
-fnames.append(os.path.join('./data/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+fnames.append(os.path.join('./data/EPR_MODWT_test.csv'));
 
 # Load data
-data,targets=loadResponseData(fnames);
+data,targets=loadResponseData(fnames,num_features=6);
+
+# Choose features
+features_cols=[0,3,4,5];
+data=data[:,features_cols];
 
 print('\n\n% of classes in testing data')
 countClasses(targets);

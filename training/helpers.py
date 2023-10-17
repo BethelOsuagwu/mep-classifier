@@ -13,7 +13,7 @@ from typing import Tuple
 
 
 
-def loadResponseData(filenames: List[str])->Tuple[np.ndarray, np.ndarray]:
+def loadResponseData(filenames: List[str],num_features: int=1)->Tuple[np.ndarray, np.ndarray]:
     """
     Load response data
 
@@ -21,6 +21,8 @@ def loadResponseData(filenames: List[str])->Tuple[np.ndarray, np.ndarray]:
     ----------
     filenames : List[str]
         List file names.
+    num_features : int
+        The number oof features. The default is 1.
 
     Returns
     -------
@@ -38,7 +40,7 @@ def loadResponseData(filenames: List[str])->Tuple[np.ndarray, np.ndarray]:
             data_lines_raw=import_data.split("\n");
             data_lines=data_lines+data_lines_raw[1:];# Item 0 is headers
 
-    num_features=1;
+    
     num_classes=len(data_lines[0].split(",")) - num_features;
     num_samples=len(data_lines);
 
@@ -80,7 +82,7 @@ def discardExcessBackgroundData(data: np.ndarray,targets: np.ndarray,discard_per
             Targets. Shape: (num_samples,num_classes)
     """
     discard_idxs=[];
-    discard_percent=5;
+    
     for n in range(len(targets)):
         if targets[n,0]==1 and (np.random.rand()>((100-discard_percent)/100)):
             discard_idxs.append(n);
@@ -105,13 +107,17 @@ def countClasses(targets: np.ndarray)->None:
 
     """
     bg_targets_idx=targets[:,0]==1;
-    bg_percent=np.count_nonzero(bg_targets_idx)/len(targets);# percentage of background class relative to all other classes
-    ep_percent=(np.count_nonzero(targets[:,2]==1)-np.count_nonzero(np.logical_and(targets[:,1],targets[:,2])))/len(targets);
-    stim_artefact_percent=(np.count_nonzero(targets[:,1]==1))/len(targets);
+    n_bg=np.count_nonzero(bg_targets_idx);
+    n_ep=(np.count_nonzero(targets[:,2]==1)-np.count_nonzero(np.logical_and(targets[:,1],targets[:,2])));
+    n_stim_artefact=(np.count_nonzero(targets[:,1]==1));
+    
+    bg_percent=n_bg/len(targets);# percentage of background class relative to all other classes
+    ep_percent=n_ep/len(targets);
+    stim_artefact_percent=n_stim_artefact/len(targets);
     print ('____________')
-    print (f'Train: Percentage of background class: {bg_percent}')
-    print (f'Train: Percentage of Response class: {ep_percent}')
-    print (f'Train: Percentage of stim artefact class: {stim_artefact_percent}')
+    print (f'Train: Percentage of background class: {bg_percent} (total samples:{n_bg})')
+    print (f'Train: Percentage of Response class: {ep_percent} (total samples:{n_ep})')
+    print (f'Train: Percentage of stim artefact class: {stim_artefact_percent} (total samples:{n_stim_artefact})')
     print ('------------')
 
 
@@ -237,21 +243,21 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
         model.add(layers.Normalization(axis=-1,mean=normalisation_mean,variance=normalisation_std**2));
     
     ## Spatial
-    model.add(layers.Conv1D(4, 3,activation='relu',padding='valid'));
-    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
     model.add(layers.Conv1D(8, 3,activation='relu',padding='valid'));
     model.add(layers.MaxPooling1D(pool_size=2,strides=2));
     model.add(layers.Conv1D(16, 3,activation='relu',padding='valid'));
     model.add(layers.MaxPooling1D(pool_size=2,strides=2));
     model.add(layers.Conv1D(32, 3,activation='relu',padding='valid'));
-    model.add(layers.UpSampling1D(size=2));
-    model.add(layers.Conv1DTranspose(16, 3,activation='relu'));
-    model.add(layers.UpSampling1D(size=2));
-    model.add(layers.Conv1DTranspose(8, 3,activation='relu'))
-    model.add(layers.UpSampling1D(size=2));
+    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
+    model.add(layers.Conv1D(64, 3,activation='relu',padding='valid'));
+    #model.add(layers.UpSampling1D(size=2));
+    model.add(layers.Conv1DTranspose(32, 7,activation='relu'));
+    #model.add(layers.UpSampling1D(size=2));
+    model.add(layers.Conv1DTranspose(8, 5,activation='relu'))
+    #model.add(layers.UpSampling1D(size=2));
     model.add(layers.Conv1DTranspose(4, 3,activation='relu'))
-    model.add(layers.UpSampling1D(size=2));
-    model.add(layers.Conv1DTranspose(2, 3,activation='relu'))
+    #model.add(layers.UpSampling1D(size=2));
+    model.add(layers.Conv1DTranspose(1, 3,activation='relu'))
     
     # model.add(layers.Conv1D(32, 8,activation='relu',padding='same'));
     # model.add(layers.MaxPooling1D(pool_size=2,strides=2));
@@ -268,7 +274,7 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
 
 
     ## Temporal
-    model.add(layers.LSTM(16));
+    model.add(layers.LSTM(16));#todo try 4 and train for longer
 
     ## Output
     model.add(layers.Dense(output_num,activation = "sigmoid"))
@@ -276,55 +282,25 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
     
     return model;
 
-def getModel__delete(num_classes:int=3,normalisation_mean:float=None,normalisation_std:float=None)->keras.Sequential:
-    """
-    Get the default model.
 
-    Parameters
-    ----------
-    num_classes : int, optional
-        Number of classes. The default is 3.
-    normalisation_mean : float, optional
-        Mean of normalisation. The default is None.
-    normalisation_std : float, optional
-        Standard deviation of normalisation. The default is None.
-
-    Returns
-    -------
-    keras.Sequential
-        Model.
-
-    """
-
-
+def getModelSmall(num_classes:int=3,normalisation_mean:float=None,normalisation_std:float=None)->keras.Sequential:
+    
     # Model parameters
     output_num = num_classes
-
-    # Model
+    
     model = keras.Sequential()
-
     ## Normalisation layer
     if normalisation_mean is not None and normalisation_std is not None:
         model.add(layers.Normalization(axis=-1,mean=normalisation_mean,variance=normalisation_std**2));
-
-   
-    ## Spatial
-    model.add(layers.Conv1D(4, 3,activation='relu',padding='valid'));
-    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
-    model.add(layers.Conv1D(8, 3,activation='relu',padding='valid'));
-    model.add(layers.MaxPooling1D(pool_size=2,strides=2));
-    model.add(layers.Conv1D(16, 3,activation='relu',padding='valid'));
-
-
-    ## Temporal
+    
+    model.add(layers.Conv1D(32, 12,activation='relu',padding='same'));
+    
     model.add(layers.LSTM(16));
-
-    ## Output
+    
     model.add(layers.Dense(output_num,activation = "sigmoid"))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
     
     return model;
-
 
 def export_model(model:keras.Model)->List[dict]:
     """

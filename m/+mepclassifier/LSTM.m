@@ -62,6 +62,7 @@ classdef LSTM
             bias=this.biases;
             steps=size(dataset,2);
             batch_size=size(dataset,1);
+            chans=size(dataset,3);
             
             kernel_size=size(this.kernels);
             num_filters=kernel_size(end);
@@ -73,10 +74,12 @@ classdef LSTM
             for step=1:steps
                 inputs=squeeze(dataset(:,step,:));
                 
-                % for the case when the batch size=1, squeeze will remove
-                % the batch dimension; this must be corrected here. 
+                % for the case when the batch_size=1, squeeze above will
+                % remove the batch dimension; A similar thing also happens 
+                % when the channels/feature dimension is 1; these must be 
+                % corrected here as follows. 
                 if iscolumn(inputs)
-                    inputs=reshape(inputs,1,[]);
+                    inputs=reshape(inputs,batch_size,chans);
                 end
                 
                 %
@@ -113,7 +116,7 @@ classdef LSTM
         %          The first tensor is the output and the second tensor is the carry.
 
             
-            z = inputs*kernel;% TODO when input_dim=1 we get error here b/c inputs we receive has shape (1,batch_size) instead of (batch_size,1).
+            z = inputs*kernel;
 
             z = z + prev_state * recurrent_kernel;
             z = z + bias;
