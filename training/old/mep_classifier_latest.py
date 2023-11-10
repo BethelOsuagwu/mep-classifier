@@ -13,7 +13,6 @@ from helpers import (
     trainValTestSplit,
     normalisationParameters,
     getModel,
-    getModelSmall,
     export_model
 )
 
@@ -36,20 +35,11 @@ fnames.append(os.path.join('./data/H23_s1_session1_both_c3-c4_relax_s1_smep-recr
 # Load data
 data,targets=loadResponseData(fnames);
 
-# Load validation data
-val_fnames=[];
-val_fnames.append(os.path.join('./data/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
-val_data,val_targets=loadResponseData(val_fnames);
-
-
 print('\n\n% of classes in training data')
 countClasses(targets);
 
 print('\n\n% of classes in training data after discarding some')
 data,targets=discardExcessBackgroundData(data,targets,discard_percent=0);
-
-print('\n\n% of classes in validation data')
-countClasses(val_targets);
 
 
 # Model parameters
@@ -62,22 +52,20 @@ num_classes=targets.shape[1];
 using_causal_data=False;
 if using_causal_data:
     data_seq,targets_seq = sequence_generator(data,targets,sequence_len,0) # input and target for training
-    val_data,val_targets=sequence_generator(val_data,val_targets,sequence_len,0);
 else:
     data_seq,targets_seq = sequence_generator_non_causal(data,targets,sequence_len) # input and target for training
-    val_data,val_targets=sequence_generator_non_causal(val_data,val_targets,sequence_len);
 # Split data into training, evaluation and test sets
 (train_data,
  train_targets,
+ val_data,
+ val_targets,
  _,
- _,
- _,
- _)=trainValTestSplit(data_seq,targets_seq,train_percent=100,val_percent=0);
+ _)=trainValTestSplit(data_seq,targets_seq,train_percent=80,val_percent=20);
 
 
 # Build model
 bg_mean,bg_std=normalisationParameters(train_data[:,0,:],train_targets);
-model=getModelSmall(num_classes,bg_mean,bg_std);
+model=getModel(num_classes,bg_mean,bg_std);
 
 # Train model
 model_base_filename='uclassifier'
@@ -91,7 +79,7 @@ history = model.fit(
     train_data,
     train_targets,
     batch_size=2048,
-    epochs=2*50,
+    epochs=50,
     validation_data=(val_data,val_targets),
     callbacks=callbacks)
 
