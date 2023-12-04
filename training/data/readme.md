@@ -1,6 +1,6 @@
 # Data
-## Training and validation data
-All but H3
+## Validation data
+H2
 
 ## Testing data
-H3
+Cross-validation data

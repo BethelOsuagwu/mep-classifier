@@ -13,7 +13,7 @@ from typing import Tuple
 
 
 
-def loadResponseData(filenames: List[str],num_features: int=1)->Tuple[np.ndarray, np.ndarray]:
+def loadResponseData(filenames: List[str],num_features: int=1,num_targets: int=None)->Tuple[np.ndarray, np.ndarray]:
     """
     Load response data
 
@@ -23,6 +23,8 @@ def loadResponseData(filenames: List[str],num_features: int=1)->Tuple[np.ndarray
         List file names.
     num_features : int
         The number oof features. The default is 1.
+    num_targets : int
+        The number of targets. The default is total columns minus num_features.
 
     Returns
     -------
@@ -40,21 +42,24 @@ def loadResponseData(filenames: List[str],num_features: int=1)->Tuple[np.ndarray
             data_lines_raw=import_data.split("\n");
             data_lines=data_lines+data_lines_raw[1:];# Item 0 is headers
 
-    
-    num_classes=len(data_lines[0].split(",")) - num_features;
+    num_classes=num_targets;
+    if num_classes is None:
+        num_classes=len(data_lines[0].split(",")) - num_features;
+        
     num_samples=len(data_lines);
-
+    
     data=np.zeros((num_samples,num_features));
     targets=np.zeros((num_samples,num_classes));
     for i in range(0,num_samples):
         line=data_lines[i].split(',');
-        if len(line) is not num_features+num_classes:
-            print(f'Skipping line {i} in data b/c of incorrect format');
+        if len(line) < num_features+num_classes:
+            print(f'Skipping line {i} with the following content in data b/c of incorrect format');
+            print(line)
             continue;
         feature_line=[float(d) for d in line[0:num_features]];
         data[i,:]=feature_line[:];
         
-        target_line=[float(d) for d in line[num_features:]];
+        target_line=[float(d) for d in line[num_features:num_features+num_classes]];
         targets[i,:]=target_line[:];
         
     return data,targets;
@@ -258,6 +263,7 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
     model.add(layers.Conv1DTranspose(4, 3,activation='relu'))
     #model.add(layers.UpSampling1D(size=2));
     model.add(layers.Conv1DTranspose(1, 3,activation='relu'))
+    #model.add(layers.Dropout(0.5))
     
     # model.add(layers.Conv1D(32, 8,activation='relu',padding='same'));
     # model.add(layers.MaxPooling1D(pool_size=2,strides=2));

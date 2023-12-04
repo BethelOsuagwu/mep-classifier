@@ -24,10 +24,26 @@ from helpers import (
 sample_freq = 4000;#Hz
 
 fnames=[];
-fnames.append(os.path.join('./data/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
-#fnames.append(os.path.join('./data/H3_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H1_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H3_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H4_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H21_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H22_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H23_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+
+fnames.append(os.path.join('./data/H1.csv'));
+fnames.append(os.path.join('./data/H2.csv'));
+fnames.append(os.path.join('./data/H3.csv'));
+fnames.append(os.path.join('./data/H4.csv'));
+fnames.append(os.path.join('./data/H21.csv'));
+fnames.append(os.path.join('./data/H22.csv'));
+fnames.append(os.path.join('./data/H23.csv'));
+
+test_fnames=[fnames[1]];
+
 # Load data
-data,targets=loadResponseData(fnames);
+data,targets=loadResponseData(test_fnames,1,3);
 
 print('\n\n% of classes in testing data')
 countClasses(targets);
@@ -62,7 +78,10 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True';#TODO: this is to fix matplotlib causi
 
 # predict
 predict = model.predict(test_data)
-plt.plot(data[sequence_len:500+sequence_len]) 
+if using_causal_data:
+    plt.plot(data[sequence_len:500+sequence_len],label="data") 
+else:
+    plt.plot(data[:500],label="data") 
 plt.plot(predict[:500,:]) #plot the predicted class
 plt.show()
 

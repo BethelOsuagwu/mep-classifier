@@ -25,21 +25,30 @@ from helpers import (
 sample_freq = 4000;#Hz
 
 fnames=[];
-fnames.append(os.path.join('./data/H1_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv'));
-#fnames.append(os.path.join('./data/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H3_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H4_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H21_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H22_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
-fnames.append(os.path.join('./data/H23_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H1_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H3_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H4_s1_session1_both_c3-c4_relax_s4_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H21_s1_session1_both_c3-c4_relax_s2_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H22_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+# fnames.append(os.path.join('./data/c3-c4/H23_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
+fnames.append(os.path.join('./data/H1.csv'));
+fnames.append(os.path.join('./data/H2.csv'));
+fnames.append(os.path.join('./data/H3.csv'));
+fnames.append(os.path.join('./data/H4.csv'));
+fnames.append(os.path.join('./data/H21.csv'));
+fnames.append(os.path.join('./data/H22.csv'));
+fnames.append(os.path.join('./data/H23.csv'));
+
+val_fnames=[fnames[1]];# Note that except for H2, the validation data here is not used to tune the classifier. The validation data here will be used for testing.
+train_fnames=[fn for fn in fnames if fn!=val_fnames[0] ];
+
 
 # Load data
-data,targets=loadResponseData(fnames);
+data,targets=loadResponseData(train_fnames,1,3);
 
 # Load validation data
-val_fnames=[];
-val_fnames.append(os.path.join('./data/H2_s1_session1_both_c3-c4_relax_s1_smep-recruitment-c3-c4_labelled.csv'));
-val_data,val_targets=loadResponseData(val_fnames);
+val_data,val_targets=loadResponseData(val_fnames,1,3);
 
 
 print('\n\n% of classes in training data')
@@ -77,7 +86,7 @@ else:
 
 # Build model
 bg_mean,bg_std=normalisationParameters(train_data[:,0,:],train_targets);
-model=getModelSmall(num_classes,bg_mean,bg_std);
+model=getModel(num_classes,bg_mean,bg_std);
 
 # Train model
 model_base_filename='uclassifier'
@@ -91,7 +100,7 @@ history = model.fit(
     train_data,
     train_targets,
     batch_size=2048,
-    epochs=2*50,
+    epochs=1*14,
     validation_data=(val_data,val_targets),
     callbacks=callbacks)
 
@@ -123,10 +132,16 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True';#TODO: this is to fix matplotlib causi
 
 # predict
 predict = model.predict(data_seq)
-plt.plot(data[sequence_len:500+sequence_len]) 
-plt.plot(predict[:500,:]) #plot the predicted class
+if using_causal_data:
+    plt.plot(data[sequence_len:500+sequence_len],label="data") 
+else:
+    plt.plot(data[:500],label="data") 
+plt.plot(predict[:500,0],label="Bg") #plot the predicted class
+plt.plot(predict[:500,1],label="stim artefact") #plot the predicted class
+plt.plot(predict[:500,2],label="response") #plot the predicted class
+#plt.legend({'Data','background','stim artefact','response','ll'})
+plt.legend()
 plt.show()
-
 
 # plot the loss
 plt.plot(history.history['loss'])
