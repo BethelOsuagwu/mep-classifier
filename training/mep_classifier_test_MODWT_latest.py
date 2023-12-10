@@ -32,7 +32,7 @@ fnames.append(os.path.join('./data/H21_mdt.csv'));
 fnames.append(os.path.join('./data/H22_mdt.csv'));
 fnames.append(os.path.join('./data/H23_mdt.csv'));
 
-test_fnames=[fnames[0]];
+test_fnames=[fnames[3]];
 
 
 # Load data
@@ -50,7 +50,7 @@ data,targets=discardExcessBackgroundData(data,targets,discard_percent=0);
 # Model parameters
 sequence_time_len=10;# The length of a sequence in milliseconds
 sequence_len = np.round(sequence_time_len/1000 * sample_freq).astype('int');
-num_channel =1 # signal channel number
+
 num_classes=targets.shape[1];
 
 # Generate data
@@ -76,8 +76,11 @@ if using_causal_data:
     plt.plot(data[sequence_len:500+sequence_len],label="data") 
 else:
     plt.plot(data[:500],label="data") 
-plt.plot(predict[:500,:]) #plot the predicted class
+plt.plot(predict[:500,0],label="background") #plot the predicted class
+plt.plot(predict[:500,1],label="stim artefact")
+plt.plot(predict[:500,2],label='response')
 #plt.legend({'data','bg','stim','response'})
+plt.legend();
 plt.show()
 
 # Evaluate the classifier

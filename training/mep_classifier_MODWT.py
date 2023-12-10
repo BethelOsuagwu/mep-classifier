@@ -25,21 +25,23 @@ from helpers import (
 sample_freq = 4000;#Hz
 
 fnames=[];
-fnames.append(os.path.join('./data/EPR_MODWT_train.csv'));
+fnames.append(os.path.join('./data/H1.csv'));
+fnames.append(os.path.join('./data/H2.csv'));
+fnames.append(os.path.join('./data/H3.csv'));
+fnames.append(os.path.join('./data/H4.csv'));
+fnames.append(os.path.join('./data/H21.csv'));
+fnames.append(os.path.join('./data/H22.csv'));
+fnames.append(os.path.join('./data/H23.csv'));
+
+val_fnames=[fnames[1]];# Note that except for H2, the validation data here is not used to tune the classifier. The validation data here will be used for testing.
+train_fnames=[fn for fn in fnames if fn!=val_fnames[0] ];
+
 
 # Load data
-data,targets=loadResponseData(fnames,num_features=6);
+data,targets=loadResponseData(train_fnames,1,3);
 
 # Load validation data
-val_fnames=[];
-val_fnames.append(os.path.join('./data/EPR_MODWT_test.csv'));
-val_data,val_targets=loadResponseData(val_fnames,num_features=6);
-
-# Choose features
-features_cols=[0,3,4,5];
-data=data[:,features_cols];
-
-val_data=val_data[:,features_cols];
+val_data,val_targets=loadResponseData(val_fnames,1,3);
 
 
 print('\n\n% of classes in training data')

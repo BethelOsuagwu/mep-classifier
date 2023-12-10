@@ -211,8 +211,8 @@ def normalisationParameters(train_data: np.ndarray,train_targets: np.ndarray)->T
 
     """
     bg_idx=train_targets[:,0]==1;
-    bg_mean=np.mean(train_data[bg_idx]);
-    bg_std=np.std(train_data[bg_idx]);
+    bg_mean=np.mean(train_data[bg_idx],axis=0);
+    bg_std=np.std(train_data[bg_idx],axis=0);
     return (bg_mean,bg_std);
 
 
@@ -255,6 +255,7 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
     model.add(layers.Conv1D(32, 3,activation='relu',padding='valid'));
     model.add(layers.MaxPooling1D(pool_size=2,strides=2));
     model.add(layers.Conv1D(64, 3,activation='relu',padding='valid'));
+    
     #model.add(layers.UpSampling1D(size=2));
     model.add(layers.Conv1DTranspose(32, 7,activation='relu'));
     #model.add(layers.UpSampling1D(size=2));

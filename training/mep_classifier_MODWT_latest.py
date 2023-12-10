@@ -4,6 +4,7 @@ from tensorflow import keras;
 import numpy as np;
 import matplotlib.pyplot as plt;
 import os;
+import math;
 from helpers import (
     loadResponseData,
     discardExcessBackgroundData,
@@ -33,16 +34,17 @@ fnames.append(os.path.join('./data/H21_mdt.csv'));
 fnames.append(os.path.join('./data/H22_mdt.csv'));
 fnames.append(os.path.join('./data/H23_mdt.csv'));
 
-test_fnames=[fnames[0]];
+test_fnames=[fnames[3]];
 val_fnames=[fnames[1]];# Note that except for H2, the validation data here is not used to tune the classifier. The validation data here will be used for testing.
 train_fnames=[fn for fn in fnames if (fn!=val_fnames[0] and fn!=test_fnames[0]) ];
 
+num_features=3;
 
 # Load data
-data,targets=loadResponseData(train_fnames,3,3);
+data,targets=loadResponseData(train_fnames,num_features,3);
 
 # Load validation data
-val_data,val_targets=loadResponseData(val_fnames,3,3);
+val_data,val_targets=loadResponseData(val_fnames,num_features,3);
 
 
 print('\n\n% of classes in training data')
@@ -58,7 +60,7 @@ countClasses(val_targets);
 # Model parameters
 sequence_time_len=10;# The length of a sequence in milliseconds
 sequence_len = np.round(sequence_time_len/1000 * sample_freq).astype('int');
-num_channel =1 # signal channel number
+#num_channel =num_features # signal channel number
 num_classes=targets.shape[1];
 
 # Generate data
@@ -77,7 +79,8 @@ else:
 
 
 # Build model
-bg_mean,bg_std=normalisationParameters(train_data[:,0,:],train_targets);
+bg_mean,bg_std=normalisationParameters(train_data[:,0,:],train_targets);# Note that we only need to take one sample from each sequence to get back the unsequenced data given that sequence overlap is= sequence_len-1. Although trainValTestSplit may have scrambled the sequences but we do not care about order to compute mean and std.
+
 model=getModel(num_classes,bg_mean,bg_std);
 
 # Train model
@@ -92,7 +95,7 @@ history = model.fit(
     train_data,
     train_targets,
     batch_size=2048,
-    epochs=14,
+    epochs=30,
     validation_data=(val_data,val_targets),
     callbacks=callbacks)
 
@@ -109,9 +112,11 @@ keras.models.save_model(model,'./export/model',save_format='tf')
 #norm_layer=model.get_layer(index=0);
 #mean = norm_layer.mean.numpy();
 #variance = norm_layer.variance.numpy();
-sanity_test_inputs = np.random.randn(3,sequence_len,num_channel);
+sanity_test_inputs = np.random.randn(3,sequence_len,num_features);
 sanity_test_outputs = model.predict(sanity_test_inputs);
 savemat(model_base_filename+'.mat',{
+    'input_shape':np.concatenate(([[math.nan],model.input_shape[-2:]])),
+    'output_shape':np.array([math.nan,model.output_shape[-1]]),
     'sample_freq':sample_freq,
     'layers':export_model(model),
     'sanity_test_inputs':sanity_test_inputs, 

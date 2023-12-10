@@ -24,14 +24,21 @@ from helpers import (
 sample_freq = 4000;#Hz
 
 fnames=[];
-fnames.append(os.path.join('./data/EPR_MODWT_test.csv'));
+fnames.append(os.path.join('./data/H1_mdt.csv'));
+fnames.append(os.path.join('./data/H2_mdt.csv'));
+fnames.append(os.path.join('./data/H3_mdt.csv'));
+fnames.append(os.path.join('./data/H4_mdt.csv'));
+fnames.append(os.path.join('./data/H21_mdt.csv'));
+fnames.append(os.path.join('./data/H22_mdt.csv'));
+fnames.append(os.path.join('./data/H23_mdt.csv'));
+
+test_fnames=[fnames[1]];
+
 
 # Load data
-data,targets=loadResponseData(fnames,num_features=6);
+data,targets=loadResponseData(train_fnames,3,3);
 
-# Choose features
-features_cols=[0,3,4,5];
-data=data[:,features_cols];
+
 
 print('\n\n% of classes in testing data')
 countClasses(targets);
