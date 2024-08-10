@@ -22,6 +22,11 @@ from helpers import (
 # Experiment to detect motor evoked potential(EPR).
 # The EPR is a response of the muscles to a stimulus.
 
+# HOW TO
+# 1. Set test_fnames, to select the index of the current subject's dataset to be used for testing. Do not change val_fnames which is used for validation.
+# 2. Run the script and record the final training/validation accuracies, and the test accuracies printed towards the end of the script. Find the location of the exported uclassifier.mat and rename it according to the subject selected for test_fnames.
+# 3. Repeat for each subject.
+
 # Data
 sample_freq = 4000;#Hz
 
@@ -33,8 +38,12 @@ fnames.append(os.path.join('./data/H4_mdt.csv'));
 fnames.append(os.path.join('./data/H21_mdt.csv'));
 fnames.append(os.path.join('./data/H22_mdt.csv'));
 fnames.append(os.path.join('./data/H23_mdt.csv'));
+fnames.append(os.path.join('./data/H24_mdt.csv'));
+fnames.append(os.path.join('./data/H25_mdt.csv'));
+fnames.append(os.path.join('./data/H26_mdt.csv'));
 
-test_fnames=[fnames[0]];
+
+test_fnames=[fnames[9]];
 val_fnames=[fnames[1]];
 train_fnames=[fn for fn in fnames if (fn!=val_fnames[0] and fn!=test_fnames[0]) ];
 
@@ -112,10 +121,15 @@ history = model.fit(
 # Load the best model
 model = keras.models.load_model(model_base_filename+'.keras');
 
+# Get the validation accuracy of the best model
+print("\n\nValidation accuracy of best mode==============================")
+val_result=model.evaluate(val_data, val_targets);
+print(f'Val loss:{val_result[0]}, Validation accuracy:{val_result[1]}\n\n')
+
 # Test the model
 print("\n\nTesting==============================")
 test_result=model.evaluate(test_data, test_targets);
-print(f'Test loss:{test_result[0]}, Test accuracy:{test_result[1]}')
+print(f'Test loss:{test_result[0]}, Test accuracy:{test_result[1]}\nn')
 
 
 # Save the model to saved odel format

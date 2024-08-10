@@ -289,7 +289,58 @@ def getModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:f
     
     return model;
 
+def getFunctionalModel(num_classes:int=3,normalisation_mean:float=None,normalisation_std:float=None)->keras.Sequential:
+    """
+    Get the default model.
 
+    Parameters
+    ----------
+    num_classes : int, optional
+        Number of classes. The default is 3.
+    normalisation_mean : float, optional
+        Mean of normalisation. The default is None.
+    normalisation_std : float, optional
+        Standard deviation of normalisation. The default is None.
+
+    Returns
+    -------
+    keras.Sequential
+        Model.
+
+    """
+
+
+    # Model parameters
+    output_num = num_classes
+
+    inputs=keras.Input(shape=(40,3));
+    x_norm=layers.Normalization(axis=-1,mean=normalisation_mean,variance=normalisation_std**2)(inputs);
+    x=layers.Conv1D(8, 3,activation='relu',padding='valid')(x_norm);
+    x=layers.MaxPooling1D(pool_size=2,strides=2)(x);
+    x=layers.Conv1D(16, 3,activation='relu',padding='valid')(x);
+    x=layers.MaxPooling1D(pool_size=2,strides=2)(x);
+    x=layers.Conv1D(32, 3,activation='relu',padding='valid')(x);
+    x=layers.MaxPooling1D(pool_size=2,strides=2)(x);
+    x=layers.Conv1D(64, 3,activation='relu',padding='valid')(x);
+
+    # x=layers.Conv1DTranspose(32, 7,activation='relu')(x);
+    # x=layers.Conv1DTranspose(8, 5,activation='relu')(x)
+    # x=layers.Conv1DTranspose(4, 3,activation='relu')(x)
+    # x=layers.Conv1DTranspose(1, 3,activation='relu')(x)
+    x=layers.Reshape((-1,))(x);
+
+    x2=layers.LSTM(16)(x_norm);
+    x=layers.Concatenate(axis=-1)([x,x2]);
+    x=layers.Dense(128,activation='relu')(x);
+    x=layers.Dense(64,activation='relu')(x);
+    x=layers.Dense(16,activation='relu')(x);
+    x=layers.Dense(output_num,activation = "sigmoid")(x);
+    model=keras.Model(inputs=inputs,outputs=x);
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
+
+    return model;
+
+    
 def getModelSmall(num_classes:int=3,normalisation_mean:float=None,normalisation_std:float=None)->keras.Sequential:
     
     # Model parameters
