@@ -30,6 +30,9 @@ from helpers import (
 # Data
 sample_freq = 4000;#Hz
 
+USE_MODWT=False;#Set to false to compute the supplementary results without MODWT.
+
+
 fnames=[];
 fnames.append(os.path.join('./data/H1_mdt.csv'));
 fnames.append(os.path.join('./data/H2_mdt.csv'));
@@ -43,11 +46,11 @@ fnames.append(os.path.join('./data/H25_mdt.csv'));
 fnames.append(os.path.join('./data/H26_mdt.csv'));
 
 
-test_fnames=[fnames[9]];
+test_fnames=[fnames[8]];
 val_fnames=[fnames[1]];
 train_fnames=[fn for fn in fnames if (fn!=val_fnames[0] and fn!=test_fnames[0]) ];
 
-num_features=3;
+num_features=3;#This is all the features including MODWT components. Should remain the same even if MODWT is not going to be used.
 
 # Load training data
 data,targets=loadResponseData(train_fnames,num_features,3);
@@ -58,6 +61,12 @@ val_data,val_targets=loadResponseData(val_fnames,num_features,3);
 # Load data evalustion data
 eva_data,eva_targets=loadResponseData(test_fnames,3,3);
 
+
+# For without MODWT, we need to remove all but the fiirst column of the data.
+if USE_MODWT==False:
+    data=data[:,0].reshape((-1,1));
+    val_data=val_data[:,0].reshape((-1,1));
+    eva_data=eva_data[:,0].reshape((-1,1));
 
 print('\n\n% of classes in training data')
 countClasses(targets);
@@ -131,23 +140,23 @@ print("\n\nTesting==============================")
 test_result=model.evaluate(test_data, test_targets);
 print(f'Test loss:{test_result[0]}, Test accuracy:{test_result[1]}\nn')
 
-
-# Save the model to saved odel format
-#tf.save_model(model, './model')
-keras.models.save_model(model,'./export/model',save_format='tf')
-
-# Export layers to MATLAB.
-#TODO: convert to a function
-sanity_test_inputs = np.random.randn(3,sequence_len,num_features);
-sanity_test_outputs = model.predict(sanity_test_inputs);
-savemat(model_base_filename+'.mat',{
-    'input_shape':np.concatenate(([[math.nan],model.input_shape[-2:]])),
-    'output_shape':np.array([math.nan,model.output_shape[-1]]),
-    'sample_freq':sample_freq,
-    'layers':export_model(model),
-    'sanity_test_inputs':sanity_test_inputs, 
-    'sanity_test_outputs':sanity_test_outputs
-    });
+if USE_MODWT==True:
+    # Save the model to saved odel format
+    #tf.save_model(model, './model')
+    keras.models.save_model(model,'./export/model',save_format='tf')
+    
+    # Export layers to MATLAB.
+    #TODO: convert to a function
+    sanity_test_inputs = np.random.randn(3,sequence_len,num_features);
+    sanity_test_outputs = model.predict(sanity_test_inputs);
+    savemat(model_base_filename+'.mat',{
+        'input_shape':np.concatenate(([[math.nan],model.input_shape[-2:]])),
+        'output_shape':np.array([math.nan,model.output_shape[-1]]),
+        'sample_freq':sample_freq,
+        'layers':export_model(model),
+        'sanity_test_inputs':sanity_test_inputs, 
+        'sanity_test_outputs':sanity_test_outputs
+        });
 
 
 # KMP_DUPLICATE_LIB_OK

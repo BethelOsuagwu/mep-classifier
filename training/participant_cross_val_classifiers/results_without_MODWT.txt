@@ -1,0 +1,9 @@
+H1: Validation accuracy:0.8431758284568787; Test accuracy:0.8272208571434021
+H3: Validation accuracy:0.8586827516555786; Test accuracy:0.798423171043396
+H4: Validation accuracy:0.8507230877876282; Test accuracy:0.8219777941703796
+H21: Validation accuracy:0.8520848751068115; Test accuracy:0.78125
+H22: Validation accuracy:0.8613391518592834; Test accuracy:0.966315746307373
+H23: Validation accuracy:0.8506559729576111; Test accuracy:0.9139817357063293
+H24: Validation accuracy:0.8623748421669006; Test accuracy:0.8479521870613098
+H25: Validation accuracy:0.8563235998153687; Test accuracy:0.8285177946090698
+H26: Validation accuracy:0.85928; Test accuracy:0.8481797575950623
